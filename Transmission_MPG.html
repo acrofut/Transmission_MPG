@@ -117,7 +117,10 @@ $(document).ready(function () {
 
 <div id="executive-summary" class="section level2">
 <h2>Executive Summary</h2>
-<p>Is an automatic or manual transmission better for MPG Quantify the MPG difference between automatic and manual transmissions</p>
+<ul>
+<li>Is an automatic or manual transmission better for MPG</li>
+<li>Quantify the MPG difference between automatic and manual transmissions</li>
+</ul>
 </div>
 <div id="assumptions" class="section level2">
 <h2>Assumptions</h2>
@@ -131,15 +134,13 @@ $(document).ready(function () {
 <h2>Exploratory Data Analysis</h2>
 <div id="required-packages" class="section level3">
 <h3>Required Packages</h3>
-<pre class="r"><code>if (!&quot;datasets&quot; %in% installed.packages()) install.packages(&quot;datasets&quot;)
-library(&quot;datasets&quot;)
-if (!&quot;ggplot2&quot; %in% installed.packages()) install.packages(&quot;ggplot2&quot;)
-library(&quot;ggplot2&quot;)
-if (!&quot;gridExtra&quot; %in% installed.packages()) install.packages(&quot;gridExtra&quot;)
-library(&quot;gridExtra&quot;)
-if (!&quot;caret&quot; %in% installed.packages()) install.packages(&quot;caret&quot;)
-library(&quot;caret&quot;)</code></pre>
-<pre><code>## Loading required package: lattice</code></pre>
+<ul>
+<li>datasets</li>
+<li>ggplot2</li>
+<li>gridExtra</li>
+<li>caret</li>
+<li>lattice</li>
+</ul>
 </div>
 </div>
 <div id="data-structure-and-processing" class="section level2">
@@ -173,12 +174,12 @@ mtcars2$am[mtcars2$am == 1] &lt;- &quot;manual&quot;</code></pre>
 <h3>Data Exploration</h3>
 <pre class="r"><code>meanMPGAuto &lt;- mean(subset(mtcars2, am== &quot;automatic&quot;)$mpg)   #mean mpg of automatics
 meanMPGManual &lt;- mean(subset(mtcars2, am == &quot;manual&quot;)$mpg)   #mean mpg of manuals</code></pre>
-<p>As apparent in the box plot “Miles per Gallon by Transmission Type” (Appendix - Figure 1), there is a significant difference between the fuel efficiency in miles per gallon (mpg) for automatic and manual transmissions. Cars with manual transmissions have a mean mpg of 24.392, a full 7.245 improvement over automatics (17.147).</p>
+<p>As apparent in the box plot “Miles per Gallon by Transmission Type” (Appendix - Figure 1), there is a significant difference between the fuel efficiency in miles per gallon (mpg) for automatic and manual transmissions. Cars with manual transmissions have a mean mpg of 24.392, a full 7.245 improvement over automatics (17.147 mpg).</p>
 </div>
 </div>
 <div id="models" class="section level2">
 <h2>Models</h2>
-<p>In order to examine this relationship more closely, this analysis will apply a simple linear regression. Then, it will look at a multivariable regression model. The models will be compared via nested model testing to determine the best fit. That fit will be evaluated using the following methods:</p>
+<p>In order to examine this relationship more closely, this analysis will apply a simple linear regression. If the linear model does not explain the regression variance as measured by the adjusted r-squared, the analysis will add additional variables to the model. The models will be compared via nested model testing to determine the best fit. That fit will be evaluated using the following methods:</p>
 <ul>
 <li>Residuals Plot</li>
 <li>Q-Q</li>
@@ -187,29 +188,13 @@ meanMPGManual &lt;- mean(subset(mtcars2, am == &quot;manual&quot;)$mpg)   #mean 
 </ul>
 <div id="simple-linear-regression" class="section level4">
 <h4>Simple Linear Regression</h4>
-<pre class="r"><code>fitS &lt;- lm(mpg ~ am, mtcars2)
-summary(fitS)</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = mpg ~ am, data = mtcars2)
-## 
-## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -9.3923 -3.0923 -0.2974  3.2439  9.5077 
-## 
-## Coefficients:
-##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   17.147      1.125  15.247 1.13e-15 ***
-## ammanual       7.245      1.764   4.106 0.000285 ***
-## ---
-## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
-## 
-## Residual standard error: 4.902 on 30 degrees of freedom
-## Multiple R-squared:  0.3598, Adjusted R-squared:  0.3385 
-## F-statistic: 16.86 on 1 and 30 DF,  p-value: 0.000285</code></pre>
+<p>The first model utilized is a simple linear regression looking at the relationship between fuel efficiency and transmission type.</p>
+<pre class="r"><code>fitS &lt;- lm(mpg ~ am, mtcars2)</code></pre>
+<p>The confidence interval of [3.642, 10.848] does not include zero and the p-value of 0.000285 indicate the null hypothesis (transmission type is not related to fuel efficiency) can be rejected with a 95% confidence interval. However, based on the adjusted R-squared, only 33.8% of the variance is explained by our model.</p>
 </div>
 <div id="multivariable-regression-model" class="section level4">
 <h4>Multivariable Regression Model</h4>
+<p>Due to the low percentage of variance explained by the simple linear model, additional variables will be added to the model. The variables were chosen utilizing a feature plot (Appendix - Figure 2 ) to identify weight (“wt”) as being correlated to fuel efficiency. Variables correlated with weight were eliminated and quarter-mile times (“qsec”) was retained because it was not correlated with weight.</p>
 <pre class="r"><code>fitM &lt;- lm(mpg ~ am + wt + qsec, mtcars2)
 summary(fitM)</code></pre>
 <pre><code>## 

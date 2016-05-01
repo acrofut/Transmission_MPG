@@ -6,8 +6,9 @@ output: html_document
 ---
 
 ##Executive Summary
-Is an automatic or manual transmission better for MPG
-Quantify the MPG difference between automatic and manual transmissions
+
+* Is an automatic or manual transmission better for MPG
+* Quantify the MPG difference between automatic and manual transmissions
 
 ##Assumptions
 * Population is independent and identically distributed.
@@ -16,7 +17,9 @@ Quantify the MPG difference between automatic and manual transmissions
 
 ##Exploratory Data Analysis
 ###Required Packages
-```{r packages}
+```{r packages, echo=FALSE}
+if (!"lattice" %in% installed.packages()) install.packages("lattice")
+library("lattice")
 if (!"datasets" %in% installed.packages()) install.packages("datasets")
 library("datasets")
 if (!"ggplot2" %in% installed.packages()) install.packages("ggplot2")
@@ -25,8 +28,13 @@ if (!"gridExtra" %in% installed.packages()) install.packages("gridExtra")
 library("gridExtra")
 if (!"caret" %in% installed.packages()) install.packages("caret")
 library("caret")
-
 ```
+
+* datasets
+* ggplot2
+* gridExtra
+* caret
+* lattice
 
 ##Data Structure and Processing
 ###Structure
@@ -50,8 +58,6 @@ mtcars2$am[mtcars2$am == 1] <- "manual"
 ```{r exploration}
 meanMPGAuto <- mean(subset(mtcars2, am== "automatic")$mpg)   #mean mpg of automatics
 meanMPGManual <- mean(subset(mtcars2, am == "manual")$mpg)   #mean mpg of manuals
-
-
 ```
 As apparent in the box plot "Miles per Gallon by Transmission Type" (Appendix - Figure 1), there is a significant difference between the fuel efficiency in miles per gallon (mpg) for automatic and manual transmissions.  Cars with manual transmissions have a mean mpg of `r round(meanMPGManual, 3)`, 
 a full `r round(meanMPGManual - meanMPGAuto, 3)` improvement over automatics
@@ -59,7 +65,7 @@ a full `r round(meanMPGManual - meanMPGAuto, 3)` improvement over automatics
 
 ##Models
 In order to examine this relationship more closely, this analysis will apply a simple linear
-regression.  Then, it will look at a multivariable regression model.  The models will be 
+regression.  If the linear model does not explain the regression variance as measured by the adjusted r-squared, the analysis will add additional variables to the model.  The models will be 
 compared via nested model testing to determine the best fit.  That fit will be evaluated
 using the following methods:
 
@@ -69,16 +75,23 @@ using the following methods:
 * Leverage
 
 ####Simple Linear Regression
+The first model utilized is a simple linear regression looking at the relationship between
+fuel efficiency and transmission type.
 ```{r slr}
 fitS <- lm(mpg ~ am, mtcars2)
-summary(fitS)
-
 ```
+
+The confidence interval of [`r round(confint(fitS, "ammanual"), 3)`] does not include zero and the p-value of `r format(round(summary(fitS)$coefficients[2, 4], 6), scientific=FALSE)` indicate the null hypothesis (transmission type is not related to fuel efficiency) can be rejected with a 95% confidence interval.  However, based on the adjusted R-squared, only `r round(summary(fitS)$adj.r.squared * 100, 1)`% of the variance is explained by our model.
+
 ####Multivariable Regression Model
+Due to the low percentage of variance explained by the simple linear model, additional variables will be added to the model.  The variables were chosen utilizing a feature plot (Appendix - Figure 2 ) to identify weight ("wt") as being correlated to fuel efficiency.  Variables correlated with weight were eliminated and quarter-mile times ("qsec") was retained because it was not correlated with weight.
 ```{r mvrm}
 fitM <- lm(mpg ~ am + wt + qsec, mtcars2)
 summary(fitM)
 ```
+
+
+
 ####Nested Model Testing
 ```{r nestedmodel}
 fit2 <- update(fitS, mpg ~ am + wt)
