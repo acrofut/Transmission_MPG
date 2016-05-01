@@ -2,7 +2,7 @@
 title: "Relationship between Transmission Type and Fuel Efficiency"
 author: "F. Alex Crofut"
 date: "Saturday, April 30, 2016"
-output: pdf_document
+output: html_document
 ---
 
 ##Executive Summary
@@ -60,41 +60,42 @@ a full `r round(meanMPGManual - meanMPGAuto, 1)` improvement over automatics
 In order to examine this relationship more closely, this analysis will apply a simple linear
 regression.  If the linear model does not explain the regression variance as measured by the adjusted r-squared, the analysis will add additional variables to the model.  The models will be 
 compared via nested model testing to determine the best fit.  That fit will be evaluated
-using the following methods:
+using the plot() function in R.
 
-* Residuals Plot
-* Q-Q
-* Scale-Location
-* Leverage
-
-####Simple Linear Regression
+###Simple Linear Regression   
 The first model utilized is a simple linear regression looking at the relationship between
 fuel efficiency and transmission type.
 ```{r slr, echo=FALSE}
 fitS <- lm(mpg ~ am, mtcars2)
 ```
+In this model, the confidence interval of [`r round(confint(fitS, "ammanual"), 3)`] does not include zero and the p-value of `r format(round(summary(fitS)$coefficients[2, 4], 6), scientific=FALSE)` indicate the null hypothesis (transmission type is not related to fuel efficiency) can be rejected with a 95% confidence interval.  However, based on the adjusted r-squared, only `r round(summary(fitS)$adj.r.squared * 100, 1)`% of the variance is explained by our model.
 
-As seen in the summary of the model (Appendix - Figure 3), the confidence interval of [`r round(confint(fitS, "ammanual"), 3)`] does not include zero and the p-value of `r format(round(summary(fitS)$coefficients[2, 4], 6), scientific=FALSE)` indicate the null hypothesis (transmission type is not related to fuel efficiency) can be rejected with a 95% confidence interval.  However, based on the adjusted r-squared, only `r round(summary(fitS)$adj.r.squared * 100, 1)`% of the variance is explained by our model.
-
-####Multivariable Regression Model
-Due to the low percentage of variance explained by the simple linear model, additional variables will be added to the model.  The variables were chosen utilizing a feature plot (Appendix - Figure 2 ) to identify weight ("wt") as being correlated to fuel efficiency.  Variables correlated with weight were eliminated and quarter-mile times ("qsec") was retained because it was not correlated with weight.  As the regressor of interest, the transmission type ("am") was added to evaluate significance.  The summary of the multivariable regression model is shown in the Appendix as Figure 4.
+###Multivariable Regression Model   
+Due to the low percentage of variance explained by the simple linear model, additional variables will be added to the model.  The variables were chosen utilizing a feature plot (Appendix - Figure 2 ) to identify weight ("wt") as being correlated to fuel efficiency.  Variables correlated with weight were eliminated and quarter-mile times ("qsec") was retained because it was not correlated with weight.  As the regressor of interest, the transmission type ("am") was added to evaluate significance.  The summary of the multivariable regression model is shown in the Appendix as Figure 3.
 ```{r mvrm, echo=FALSE}
 fitM <- lm(mpg ~ am + wt + qsec, mtcars2)
 ```
 The 95% confidence interval for transmission type is [`r round(confint(fitM, "ammanual"), 3)`],which excludes zero.  With a p-value of `r format(round(summary(fitM)$coefficients[2, 4], 6), scientific=FALSE)`, the null hypothesis is again rejected in favor of the alternate hypothesis that fuel efficiency and transmission type are related.  Additionally, the adjusted r-squared value shows that `r round(summary(fitS)$adj.r.squared * 100, 1)`% of the variance is explained by this new model.
 
-####Nested Model Testing
+###Nested Model Testing   
 A nested model test is utilized to determine the significance of the regressors included.  Weight alone is examined in the first model, Quarter-mile time is added in the second, and transmission type is added in the final model.
 ```{r nestedmodel, echo=FALSE}
 fit1 <- lm(mpg ~ wt, mtcars2)
 fit2 <- update(fit1, mpg ~ wt + qsec)
 fit3 <- update(fit1, mpg ~ wt + qsec + am)
-anova(fit1, fit2, fit3)
+an <- anova(fit1)
+an2 <- anova(fit1, fit2, fit3)
 ```
-As seen in the table above, each of the three regressors included in the multivariable regression model are significant with 95% confidence.
+the results of anova() show us the p-values of:  
 
-####Diagnostics
-The multivariable model was also tested using the plot() function in R (Appendix - Figure 5).  The "Residuals vs Fitted" plot shows some, but not much, curvature, meaning this model does not require a quadratic component.  The "Normal Q-Q" plot shows the residuals are normally distributed.  The "Scale-Location" plot is tilted up, indicating the residuals may not be homoskedastic.  The "Residuals vs Leverage" plot shows that no points were overly influential.
+* Weight:  1.29e-10
+* Quarter-mile Time:  `r format(round(an2$"Pr(>F)"[2], 6), scientific=FALSE)`
+* Transmission Type:  `r format(round(an2$"Pr(>F)"[3], 6), scientific=FALSE)`
+
+As seen above, each of the three regressors included in the multivariable regression model are significant with 95% confidence.
+
+###Diagnostics   
+The multivariable model was also tested using the plot() function in R (Appendix - Figure 4).  The "Residuals vs Fitted" plot shows some, but not much, curvature, meaning this model does not require a quadratic component.  The "Normal Q-Q" plot shows the residuals are normally distributed.  The "Scale-Location" plot is tilted up, indicating the residuals may not be homoskedastic.  The "Residuals vs Leverage" plot shows that no points were overly influential.
 
 ##Conclusions
 The cars with manual transmissions show a mean fuel efficiency `r round(meanMPGManual - meanMPGAuto, 1)` MPG higher than that for automatic transmissions.  However, the weight of the vehicle and the quarter-mile time are confounding variables.  Additionally, there is some doubt that our regressors are homoskedastic.  
@@ -121,18 +122,12 @@ featurePlot(x = mtcars2[,c(1, 3, 4, 6, 7)], y = mtcars2$am, plot = "pairs", col 
 ```
 
 ###Figure 3:  
-Summary of Simple Linear Regression Model
-```{r fig3}
-summary(fitS)
-```
-
-###Figure 4:  
 Summary of Multivariable Regression Model
 ```{r fig4}
 summary(fitM)
 ```
 
-###Figure 5:
+###Figure 4:
 Diagnostic Plots for Multivariable Regression Model
 ```{r fig5}
 par(mfrow = c(2,2))
